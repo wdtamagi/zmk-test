@@ -1,0 +1,196 @@
+#include <dt-bindings/zmk/matrix_transform.h>
+#include <dt-bindings/he/mouse_forwarder.h>
+#include <dt-bindings/he/gamepad_forwarder.h>
+#include <input/he_processors.dtsi>
+#include <physical_layouts.dtsi>
+
+&adc {
+    status = "okay";
+
+    #address-cells = <1>;
+    #size-cells = <0>;
+    channel@0 {
+        reg = <0>;
+        zephyr,input-positive = <NRF_SAADC_AIN0>;
+        zephyr,gain = "ADC_GAIN_1_2";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
+    channel@1 {
+        reg = <1>;
+        zephyr,input-positive = <NRF_SAADC_AIN5>;
+        zephyr,gain = "ADC_GAIN_1_2";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
+    channel@2 {
+        reg = <2>;
+        zephyr,input-positive = <NRF_SAADC_AIN7>;
+        zephyr,gain = "ADC_GAIN_1_2";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
+};
+
+&raw_sp {
+    matrix-size = <1 2>;
+    working-area = <250 3050>;
+    // I lost so many hours debugging this with the wrong values, please check them carefully in the future
+    filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
+};
+
+&he_trans {
+};
+
+&he_pass {
+    kscan-passthrough-position = <2700>;
+    keymap-size = <2>;
+};
+
+&rt_pass{
+    keymap-size = <2>;
+};
+
+/ {
+    chosen {
+        // zephyr,display = &oled;
+        zmk,kscan = &kscan;
+        zmk,physical-layout = &physical_layout0;
+        // zmk,battery = &battery_ch;
+        // zephyr,console = &uart0;
+        // zephyr,console = &snippet_zmk_usb_logging_uart;
+        // zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
+    };
+
+    // On the nano 33 ble, the battery is connected to an on board regulator that goes to vdd, so the only way to measure the battery is with a voltage divider
+    // but i don't have any free adc pins
+    // 
+    // battery_ch: battery_channel {
+    //     compatible = "zmk,battery-nrf-vddh-channel";
+    //     io-channels = <&adc 6>;
+    // };
+    
+    physical_layout0: physical_layout_0 { // First physical layout, use different naming for other layouts
+        compatible = "zmk,physical-layout";
+        display-name = "Default Layout";
+        kscan = <&kscan>; // Label of the kscan node, optional if all layouts use the same
+        transform = <&default_transform>; // Label of the matrix transform for this layout
+        keys  //                     w   h    x    y     rot    rx    ry
+            = <&key_physical_attrs 100 100    0    0       0     0     0>
+            , <&key_physical_attrs 100 100  100    0       0     0     0>
+            ;
+    };
+
+
+    default_transform: keymap_transform_0 {
+        compatible = "zmk,matrix-transform";
+        columns = <2>;
+        rows = <1>;
+        map = <
+    RC(0,0) RC(0,1)
+        >;
+    };
+
+    kscan_gpio: kscan-gpio {
+        compatible = "zmk,kscan-gpio-matrix";
+        wakeup-source;
+
+        diode-direction = "col2row";
+        row-gpios
+            = <&gpio0 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
+            ;
+
+    };
+
+    kscan: kscan0 {
+        compatible = "zmk,kscan-composite";
+        wakeup-source;
+        rows = <1>;
+        columns = <2>;
+        gpio-matrix {
+            kscan = <&kscan_gpio>;
+            row-offset = <0>;
+            col-offset = <0>;
+        };
+        adc-direct {
+            kscan = <&kscan_adc>;
+            row-offset = <0>;
+            col-offset = <0>;
+        };
+    };
+
+    pulse_set_forwarder: pulse-set-forwarder {
+        compatible = "he,pulse-set-forwarder";
+    };
+
+    kscan_adc: kscan-adc {
+        compatible = "he,kscan-direct-pulsed";
+        resolution = <12>;
+        pulse-read;
+        // calibrate;
+        read-turn-on-time= <50>;
+        wait-period-idle= <5>;
+        wait-period-press= <1>;
+        kscan-forwarder = <&kscan_forwarder>;
+        pulse-set-forwarder= <&pulse_set_forwarder>;
+        kscan_adc_top: top {
+            enable-gpios= <&gpio0 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            // switch-pressed-is-higher;
+            switch-height = <3300>;
+        };
+        kscan_adc_bot: bot {
+            enable-gpios= <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            // switch-pressed-is-higher;
+            switch-height = <3300>;
+        };
+    };
+
+    socd_d: he-socd1{
+        compatible = "he,input-processor-socd";
+        #input-processor-cells = <1>;
+        sensitivity = <250>;
+        kscan-forwarder = <&kscan_forwarder>;
+        kscan-passthrough;
+        actuation-point = <2800>;
+        type= "priority_deeper";
+    };
+
+    ps: he_set_p{ //name needs to be <= 8 chars
+        compatible = "he,behavior-pulse-set";
+        #binding-cells = <1>;
+        pulse-set-forwarder = <&pulse_set_forwarder>;
+    };
+
+    he_transform: he_transform {// mapping of he sensors before going to kscan-composite but with he,input-processor-matrix-offset applied
+        compatible = "zmk,matrix-transform";
+        // status= "disabled";
+        columns = <2>;
+        rows = <1>;
+        // |  HE1  |  HE2  |
+        // |  HE4  |  HE5  |
+        map = <
+            RC(0,0) RC(0,1)
+        >;
+    };
+
+    he_keymap: he-keymap {
+        compatible = "he,input-processor-keymap";
+        status= "disabled";
+        #input-processor-cells = <1>;
+        transform = <&he_transform>;
+    };
+
+    central_listener: central_listener {
+        compatible = "he,input-listener";
+        status = "disabled";
+        device = <&kscan_adc>;
+        input-processors = <&raw_sp>;
+        layer0 {
+            layers = <0>;
+            input-processors = <&he_keymap 0>;
+        };
+    };
+};
