@@ -7,7 +7,7 @@
 #include <input/he_processors.dtsi>
 #include "tmr-layouts.dtsi"
 
-&kscan_adc_top{
+&kscan_adc_top {
     first {
         io-channels = <&adc 0>;
         // deadzone-top = <>;
@@ -24,7 +24,7 @@
     };
 };
 
-&kscan_adc_bot{
+&kscan_adc_bot {
     first {
         io-channels = <&adc 2>;
         // deadzone-top = <>;
@@ -45,13 +45,6 @@
     sample-div = <1>;
 };
 
-&he_transform {
-    status="okay";
-};
-
-&he_keymap {
-    status = "okay";
-};
 
 / {
     chosen {
@@ -148,7 +141,7 @@
 
     he_keymap: he-keymap {
         compatible = "he,input-processor-keymap";
-        status= "disabled";
+        status="okay";
         #input-processor-cells = <1>;
         transform = <&he_transform>;
     };
@@ -167,7 +160,7 @@
 
     central_listener: central_listener {
         compatible = "he,input-listener";
-        status = "disabled";
+        status = "okay";
         device = <&kscan_adc>;
         input-processors = <&raw_sp>;
         layer0 {
