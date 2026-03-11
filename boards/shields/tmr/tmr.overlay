@@ -5,6 +5,91 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include "tmr-layouts.dtsi"
 
+&adc {
+    status = "okay";
+
+    #address-cells = <1>;
+    #size-cells = <0>;
+    channel@0 {
+        reg = <0>;
+        zephyr,input-positive = <2>;
+        zephyr,gain = "ADC_GAIN_1_2";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
+    channel@1 {
+        reg = <1>;
+        zephyr,input-positive = <3>;
+        zephyr,gain = "ADC_GAIN_1_2";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
+    channel@2 {
+        reg = <2>;
+        zephyr,input-positive = <4>;
+        zephyr,gain = "ADC_GAIN_1_2";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
+    channel@3 {
+        reg = <3>;
+        zephyr,input-positive = <5>;
+        zephyr,gain = "ADC_GAIN_1_2";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
+};
+
+&kscan_adc_top{
+    first {
+        io-channels = <&adc 0>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2095>;
+        calibration-max = <3286>;
+    };
+    second {
+        io-channels = <&adc 1>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2067>;
+        calibration-max = <3245>;
+    };
+};
+
+&kscan_adc_bot{
+    first {
+        io-channels = <&adc 2>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2072>;
+        calibration-max = <3232>;
+    };
+    second {
+        io-channels = <&adc 3>;
+        // deadzone-top = <>;
+        // deadzone-bottom = <>;
+        calibration-min = <2193>;
+        calibration-max = <3278>;
+    };
+};
+
+&raw_sp {
+    sample-div = <1>;
+};
+
+&he_transform {
+    status="okay";
+};
+
+&he_keymap {
+    status = "okay";
+};
+
 / {
     chosen {
         zmk,physical-layout = &default_layout;
@@ -53,12 +138,12 @@
         kscan-forwarder = <&kscan_forwarder>;
         pulse-set-forwarder= <&pulse_set_forwarder>;
         kscan_adc_top: top {
-            enable-gpios= <&nano_33_ble_gpio_a 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            enable-gpios= <&pro_micro 15 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
             // switch-pressed-is-higher;
             switch-height = <3300>;
         };
         kscan_adc_bot: bot {
-            enable-gpios= <&nano_33_ble_gpio_a 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            enable-gpios= <&pro_micro 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
             // switch-pressed-is-higher;
             switch-height = <3300>;
         };
