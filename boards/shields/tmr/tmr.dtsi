@@ -131,12 +131,12 @@
         pulse-set-forwarder= <&pulse_set_forwarder>;
         kscan_adc_top: top {
             enable-gpios= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-            // switch-pressed-is-higher;
+            switch-pressed-is-higher;
             switch-height = <2374>;
         };
         kscan_adc_bot: bot {
             enable-gpios= <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-            // switch-pressed-is-higher;
+            switch-pressed-is-higher;
             switch-height = <2374>;
         };
     };
