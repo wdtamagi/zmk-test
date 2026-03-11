@@ -12,8 +12,8 @@
         io-channels = <&adc 0>;
         // deadzone-top = <>;
         // deadzone-bottom = <>;
-        calibration-min = <2095>;
-        calibration-max = <3286>;
+        calibration-min = <50>;
+        calibration-max = <1400>;
     };
 };
 
@@ -22,8 +22,8 @@
         io-channels = <&adc 1>;
         // deadzone-top = <>;
         // deadzone-bottom = <>;
-        calibration-min = <2072>;
-        calibration-max = <3232>;
+        calibration-min = <50>;
+        calibration-max = <1400>;
     };
 };
 
