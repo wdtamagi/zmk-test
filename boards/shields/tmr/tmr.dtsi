@@ -123,10 +123,12 @@
         compatible = "he,kscan-direct-pulsed";
         resolution = <12>;
         // pulse-read;
-        // calibrate;
+        calibrate;
         read-turn-on-time= <50>;
-        wait-period-idle= <5>;
-        wait-period-press= <1>;
+        wait-period-idle= <500>;
+        wait-period-press= <500>;
+        //wait-period-idle= <5>;
+        //wait-period-press= <1>;
         kscan-forwarder = <&kscan_forwarder>;
         pulse-set-forwarder= <&pulse_set_forwarder>;
         kscan_adc_top: top {
