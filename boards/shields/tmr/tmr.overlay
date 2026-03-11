@@ -15,29 +15,15 @@
         calibration-min = <2095>;
         calibration-max = <3286>;
     };
-    second {
-        io-channels = <&adc 1>;
-        // deadzone-top = <>;
-        // deadzone-bottom = <>;
-        calibration-min = <2067>;
-        calibration-max = <3245>;
-    };
 };
 
 &kscan_adc_bot {
     first {
-        io-channels = <&adc 2>;
+        io-channels = <&adc 1>;
         // deadzone-top = <>;
         // deadzone-bottom = <>;
         calibration-min = <2072>;
         calibration-max = <3232>;
-    };
-    second {
-        io-channels = <&adc 3>;
-        // deadzone-top = <>;
-        // deadzone-bottom = <>;
-        calibration-min = <2193>;
-        calibration-max = <3278>;
     };
 };
 
