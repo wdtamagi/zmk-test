@@ -1,0 +1,78 @@
+// This file was generated from a template. Edit it to match your keyboard.
+// See https://zmk.dev/docs/development/hardware-integration/new-shield for more
+// instructions.
+
+#include <dt-bindings/zmk/matrix_transform.h>
+#include "tmr-layouts.dtsi"
+
+/ {
+    chosen {
+        zmk,physical-layout = &default_layout;
+    };
+
+    pulse_set_forwarder: pulse-set-forwarder {
+        compatible = "he,pulse-set-forwarder";
+    };
+
+    kscan_selector: kscan-selector {
+        compatible = "zmk,kscan-gpio-direct"; //TODO implement custom driver with pull_up toggling
+        // wakeup-source;
+    };
+
+    socd_d: he-socd1{
+        compatible = "he,input-processor-socd";
+        #input-processor-cells = <1>;
+        sensitivity = <250>;
+        kscan-forwarder = <&kscan_forwarder>;
+        kscan-passthrough;
+        actuation-point = <2800>;
+        type= "priority_deeper";
+    };
+
+    ps: he_set_p{ //name needs to be <= 8 chars
+        compatible = "he,behavior-pulse-set";
+        #binding-cells = <1>;
+        pulse-set-forwarder = <&pulse_set_forwarder>;
+    };
+
+    he_keymap: he-keymap {
+        compatible = "he,input-processor-keymap";
+        status= "disabled";
+        #input-processor-cells = <1>;
+        transform = <&default_transform>;
+    };
+
+    kscan: kscan {
+        compatible = "he,kscan-direct-pulsed";
+        resolution = <12>;
+        pulse-read;
+        // calibrate;
+        read-turn-on-time= <50>;
+        wait-period-idle= <5>;
+        wait-period-press= <1>;
+        kscan-forwarder = <&kscan_forwarder>;
+        pulse-set-forwarder= <&pulse_set_forwarder>;
+        kscan_adc_top: top {
+            enable-gpios= <&nano_33_ble_gpio_a 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            // switch-pressed-is-higher;
+            switch-height = <3300>;
+        };
+        kscan_adc_bot: bot {
+            enable-gpios= <&nano_33_ble_gpio_a 7 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            // switch-pressed-is-higher;
+            switch-height = <3300>;
+        };
+    };
+
+    default_transform: default_transform {
+        compatible = "zmk,matrix-transform";
+        columns = <2>;
+        rows = <2>;
+        // |  HE1  |  HE2  
+        // |  HE3  |  HE4 
+        map = <
+            RC(0,0) RC(0,1) 
+            RC(1,0) RC(1,1)
+        >;
+    };
+};

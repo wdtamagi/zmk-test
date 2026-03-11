@@ -1,0 +1,6 @@
+if SHIELD_TMR
+
+config ZMK_KEYBOARD_NAME
+    default "tmr"
+
+endif # SHIELD_TMR

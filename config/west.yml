@@ -10,5 +10,9 @@ manifest:
     - name: zmk
       remote: zmkfirmware
       import: app/west.yml
+    - name: zmk-feature-hall-effect
+      url: https://github.com/cr3eperall/zmk-feature-hall-effect
+      revision: main
+      path: modules/zmk-feature-hall-effect
   self:
     path: config
