@@ -129,20 +129,20 @@
     kscan_adc: kscan-adc {
         compatible = "he,kscan-direct-pulsed";
         resolution = <12>;
-        pulse-read;
-        // calibrate;
+        /* pulse-read; */
+        calibrate;
         read-turn-on-time= <50>;
         wait-period-idle= <5>;
         wait-period-press= <1>;
         kscan-forwarder = <&kscan_forwarder>;
         pulse-set-forwarder= <&pulse_set_forwarder>;
         kscan_adc_top: top {
-            enable-gpios= <&gpio0 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            /* enable-gpios= <&gpio0 2 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>; */
             // switch-pressed-is-higher;
             switch-height = <3300>;
         };
         kscan_adc_bot: bot {
-            enable-gpios= <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            /* enable-gpios= <&gpio0 29 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>; */
             // switch-pressed-is-higher;
             switch-height = <3300>;
         };
