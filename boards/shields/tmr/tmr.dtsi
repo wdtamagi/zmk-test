@@ -30,7 +30,7 @@
 
 &raw_sp {
     matrix-size = <1 2>;
-    working-area = <100 1250>;
+    working-area = <200 2170>;
     // I lost so many hours debugging this with the wrong values, please check them carefully in the future
     filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
 };
@@ -39,7 +39,7 @@
 };
 
 &he_pass {
-    kscan-passthrough-position = <1100>;
+    kscan-passthrough-position = <1900>;
     keymap-size = <2>;
 };
 
@@ -123,23 +123,21 @@
         compatible = "he,kscan-direct-pulsed";
         resolution = <12>;
         // pulse-read;
-        calibrate;
+        // calibrate;
         read-turn-on-time= <50>;
-        wait-period-idle= <500>;
-        wait-period-press= <500>;
-        //wait-period-idle= <5>;
-        //wait-period-press= <1>;
+        wait-period-idle= <5>;
+        wait-period-press= <1>;
         kscan-forwarder = <&kscan_forwarder>;
         pulse-set-forwarder= <&pulse_set_forwarder>;
         kscan_adc_top: top {
             enable-gpios= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
             // switch-pressed-is-higher;
-            switch-height = <1350>;
+            switch-height = <2374>;
         };
         kscan_adc_bot: bot {
             enable-gpios= <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
             // switch-pressed-is-higher;
-            switch-height = <1350>;
+            switch-height = <2374>;
         };
     };
 
@@ -149,7 +147,7 @@
         sensitivity = <250>;
         kscan-forwarder = <&kscan_forwarder>;
         kscan-passthrough;
-        actuation-point = <1100>;
+        actuation-point = <1900>;
         type= "priority_deeper";
     };
 

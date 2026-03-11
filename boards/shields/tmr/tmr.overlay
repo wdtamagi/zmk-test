@@ -13,7 +13,7 @@
         // deadzone-top = <>;
         // deadzone-bottom = <>;
         calibration-min = <0>;
-        calibration-max = <2700>;
+        calibration-max = <2374>;
     };
 };
 
@@ -23,7 +23,7 @@
         // deadzone-top = <>;
         // deadzone-bottom = <>;
         calibration-min = <0>;
-        calibration-max = <2700>;
+        calibration-max = <2374>;
     };
 };
 
