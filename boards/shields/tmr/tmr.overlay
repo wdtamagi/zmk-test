@@ -10,19 +10,17 @@
 &kscan_adc_top {
     first {
         io-channels = <&adc 0>;
-        // deadzone-top = <>;
-        // deadzone-bottom = <>;
+        // "left" half: center(1130) to extreme(0)
         calibration-min = <0>;
-        calibration-max = <2374>;
+        calibration-max = <1130>;
     };
 };
 
 &kscan_adc_bot {
     first {
-        io-channels = <&adc 1>;
-        // deadzone-top = <>;
-        // deadzone-bottom = <>;
-        calibration-min = <0>;
+        io-channels = <&adc 2>;
+        // "right" half: center(1130) to extreme(2374)
+        calibration-min = <1130>;
         calibration-max = <2374>;
     };
 };

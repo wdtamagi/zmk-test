@@ -24,8 +24,8 @@
 &he_keymap {
     layer0 {
         input-processors = <
-            &socd_d 0
-            &socd_d 1
+            &he_pass 0
+            &he_pass 1
         >;
     };
 };

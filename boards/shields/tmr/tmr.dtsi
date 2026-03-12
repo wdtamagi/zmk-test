@@ -25,12 +25,19 @@
         zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
         zephyr,resolution = <12>;
     };
-    // channel@2 removed — only 2 ADC channels needed for single joystick
+    channel@2 {
+        reg = <2>;
+        zephyr,input-positive = <NRF_SAADC_AIN0>;
+        zephyr,gain = "ADC_GAIN_1_6";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
 };
 
 &raw_sp {
     matrix-size = <1 2>;
-    working-area = <200 2170>;
+    working-area = <100 1030>;
     // I lost so many hours debugging this with the wrong values, please check them carefully in the future
     filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
 };
@@ -39,7 +46,7 @@
 };
 
 &he_pass {
-    kscan-passthrough-position = <1900>;
+    kscan-passthrough-position = <900>;
     keymap-size = <2>;
 };
 
@@ -131,13 +138,14 @@
         pulse-set-forwarder= <&pulse_set_forwarder>;
         kscan_adc_top: top {
             enable-gpios= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-            switch-pressed-is-higher;
-            switch-height = <2374>;
+            // "left" direction: lower ADC = more pressed
+            switch-height = <1130>;
         };
         kscan_adc_bot: bot {
             enable-gpios= <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            // "right" direction: higher ADC = more pressed
             switch-pressed-is-higher;
-            switch-height = <2374>;
+            switch-height = <1244>;
         };
     };
 
