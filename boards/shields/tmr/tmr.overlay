@@ -41,3 +41,9 @@
 &he_keymap {
     status = "okay";
 };
+
+&gp_fw {
+    working-area = <0 1244>;
+    time-to-max-speed-ms = <0>;
+    accumulation-time = <2>;
+};
