@@ -10,18 +10,18 @@
 &kscan_adc_top {
     first {
         io-channels = <&adc 0>;
-        // "left" half: center(1130) to safe min(100)
+        // "left" half: center(~1877) to safe min(0) — 3.3V direct, no divider
         calibration-min = <0>;
-        calibration-max = <1130>;
+        calibration-max = <1877>;
     };
 };
 
 &kscan_adc_bot {
     first {
         io-channels = <&adc 0>;
-        // "right" half: center(1130) to safe max(2200)
-        calibration-min = <1130>;
-        calibration-max = <2400>;
+        // "right" half: center(~1877) to safe max(~3750) — 3.3V direct, no divider
+        calibration-min = <1877>;
+        calibration-max = <3750>;
     };
 };
 
@@ -43,7 +43,7 @@
 };
 
 &gp_fw {
-    working-area = <0 1300>;
+    working-area = <0 2100>;
     time-to-max-speed-ms = <0>;
     accumulation-time = <2>;
 };
