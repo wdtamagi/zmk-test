@@ -23,3 +23,6 @@
    - board: nice_nano
      shield: tmr
      snippet: zmk-usb-logging
+   - board: nice_nano
+     shield: settings_reset
+     artifact-name: settings_reset
