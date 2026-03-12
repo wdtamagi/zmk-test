@@ -11,7 +11,7 @@
     first {
         io-channels = <&adc 0>;
         // "left" half: center(1130) to safe min(100)
-        calibration-min = <100>;
+        calibration-min = <0>;
         calibration-max = <1130>;
     };
 };
@@ -21,7 +21,7 @@
         io-channels = <&adc 0>;
         // "right" half: center(1130) to safe max(2200)
         calibration-min = <1130>;
-        calibration-max = <2200>;
+        calibration-max = <2400>;
     };
 };
 
@@ -43,7 +43,7 @@
 };
 
 &gp_fw {
-    working-area = <0 1070>;
+    working-area = <0 1300>;
     time-to-max-speed-ms = <0>;
     accumulation-time = <2>;
 };

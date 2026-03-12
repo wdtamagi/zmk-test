@@ -37,7 +37,7 @@
 
 &raw_sp {
     matrix-size = <2 1>;
-    working-area = <100 1030>;
+    working-area = <0 1300>;
     // I lost so many hours debugging this with the wrong values, please check them carefully in the future
     filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
 };
