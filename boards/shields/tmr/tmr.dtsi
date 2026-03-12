@@ -81,6 +81,8 @@
         keys  //                     w   h    x    y     rot    rx    ry
             = <&key_physical_attrs 100 100    0    0       0     0     0>
             , <&key_physical_attrs 100 100  100    0       0     0     0>
+            , <&key_physical_attrs 100 100    0  100       0     0     0>
+            , <&key_physical_attrs 100 100  100  100       0     0     0>
             ;
     };
 
@@ -88,9 +90,11 @@
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
         columns = <2>;
-        rows = <1>;
+        rows = <3>;
         map = <
     RC(0,0) RC(0,1)
+    RC(1,0)
+    RC(2,0)
         >;
     };
 
@@ -108,7 +112,7 @@
     kscan: kscan0 {
         compatible = "zmk,kscan-composite";
         wakeup-source;
-        rows = <1>;
+        rows = <3>;
         columns = <2>;
         gpio-matrix {
             kscan = <&kscan_gpio>;
@@ -117,7 +121,7 @@
         };
         adc-direct {
             kscan = <&kscan_adc>;
-            row-offset = <0>;
+            row-offset = <1>;
             col-offset = <0>;
         };
     };
