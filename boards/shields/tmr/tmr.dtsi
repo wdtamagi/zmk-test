@@ -36,7 +36,7 @@
 };
 
 &raw_sp {
-    matrix-size = <1 2>;
+    matrix-size = <2 1>;
     working-area = <100 1030>;
     // I lost so many hours debugging this with the wrong values, please check them carefully in the future
     filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
@@ -168,12 +168,12 @@
     he_transform: he_transform {// mapping of he sensors before going to kscan-composite but with he,input-processor-matrix-offset applied
         compatible = "zmk,matrix-transform";
         // status= "disabled";
-        columns = <2>;
-        rows = <1>;
-        // |  HE1  |  HE2  |
-        // |  HE4  |  HE5  |
+        columns = <1>;
+        rows = <2>;
+        // top group key -> position 0, bot group key -> position 1
         map = <
-            RC(0,0) RC(0,1)
+            RC(0,0)
+            RC(1,0)
         >;
     };
 
