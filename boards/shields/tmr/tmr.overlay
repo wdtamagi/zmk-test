@@ -18,7 +18,7 @@
 
 &kscan_adc_bot {
     first {
-        io-channels = <&adc 2>;
+        io-channels = <&adc 0>;
         // "right" half: center(1130) to extreme(2374)
         calibration-min = <1130>;
         calibration-max = <2374>;
