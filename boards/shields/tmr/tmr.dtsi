@@ -36,7 +36,7 @@
 };
 
 &raw_sp {
-    matrix-size = <2 1>;
+    matrix-size = <4 1>;
     working-area = <0 4095>;
     // I lost so many hours debugging this with the wrong values, please check them carefully in the future
     filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
@@ -46,12 +46,14 @@
 };
 
 &he_pass {
-    kscan-passthrough-position = <1500>;
-    keymap-size = <2>;
+    // 35% actuation: 1877 * 0.65 = 1220 (height below this = pressed)
+    // sensitivity adds hysteresis: press at pos-125, release at pos+125
+    kscan-passthrough-position = <1220>;
+    keymap-size = <4>;
 };
 
 &rt_pass{
-    keymap-size = <2>;
+    keymap-size = <4>;
 };
 
 / {
@@ -83,6 +85,8 @@
             , <&key_physical_attrs 100 100  100    0       0     0     0>
             , <&key_physical_attrs 100 100    0  100       0     0     0>
             , <&key_physical_attrs 100 100  100  100       0     0     0>
+            , <&key_physical_attrs 100 100    0  200       0     0     0>
+            , <&key_physical_attrs 100 100  100  200       0     0     0>
             ;
     };
 
@@ -90,11 +94,13 @@
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
         columns = <2>;
-        rows = <3>;
+        rows = <5>;
         map = <
     RC(0,0) RC(0,1)
     RC(1,0)
     RC(2,0)
+    RC(3,0)
+    RC(4,0)
         >;
     };
 
@@ -112,7 +118,7 @@
     kscan: kscan0 {
         compatible = "zmk,kscan-composite";
         wakeup-source;
-        rows = <3>;
+        rows = <5>;
         columns = <2>;
         gpio-matrix {
             kscan = <&kscan_gpio>;
@@ -140,6 +146,7 @@
         wait-period-press= <1>;
         kscan-forwarder = <&kscan_forwarder>;
         pulse-set-forwarder= <&pulse_set_forwarder>;
+        // X axis (AIN0)
         kscan_adc_top: top {
             enable-gpios= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
             // "left" direction: lower ADC = more pressed
@@ -148,6 +155,18 @@
         kscan_adc_bot: bot {
             enable-gpios= <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
             // "right" direction: higher ADC = more pressed
+            switch-pressed-is-higher;
+            switch-height = <1877>;
+        };
+        // Y axis (AIN5 / P0.29)
+        kscan_adc_up: up {
+            enable-gpios= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            // "up" direction: lower ADC = more pressed
+            switch-height = <1877>;
+        };
+        kscan_adc_down: down {
+            enable-gpios= <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
+            // "down" direction: higher ADC = more pressed
             switch-pressed-is-higher;
             switch-height = <1877>;
         };
@@ -173,11 +192,13 @@
         compatible = "zmk,matrix-transform";
         // status= "disabled";
         columns = <1>;
-        rows = <2>;
-        // top group key -> position 0, bot group key -> position 1
+        rows = <4>;
+        // group -> position: top/left=0, bot/right=1, up=2, down=3
         map = <
             RC(0,0)
             RC(1,0)
+            RC(2,0)
+            RC(3,0)
         >;
     };
 

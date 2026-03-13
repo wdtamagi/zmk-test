@@ -30,6 +30,24 @@
     };
 };
 
+// Y axis (AIN5 / P0.29) — same calibration as X axis (same sensor type)
+// May need calibration adjustment if Y axis center/range differs
+&kscan_adc_up {
+    first {
+        io-channels = <&adc 1>;
+        calibration-min = <0>;
+        calibration-max = <1877>;
+    };
+};
+
+&kscan_adc_down {
+    first {
+        io-channels = <&adc 1>;
+        calibration-min = <1877>;
+        calibration-max = <3750>;
+    };
+};
+
 &central_listener{
     status = "okay";
 };

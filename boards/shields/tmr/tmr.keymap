@@ -17,6 +17,8 @@
                 &kp A &kp B
                 &kp C
                 &kp D
+                &kp E
+                &kp F
             >;
         };
     };
@@ -25,8 +27,10 @@
 &he_keymap {
     layer0 {
         input-processors = <
-            &gp_fw GP_L_LEFT
-            &gp_fw GP_L_RIGHT
+            &he_pass 0
+            &he_pass 1
+            &he_pass 2
+            &he_pass 3
         >;
     };
 };
