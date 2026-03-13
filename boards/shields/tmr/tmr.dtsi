@@ -50,7 +50,7 @@
 / {
     chosen {
         // zephyr,display = &oled;
-        zmk,kscan = &kscan_adc;
+        zmk,kscan = &kscan;
         zmk,physical-layout = &physical_layout0;
         // zmk,battery = &battery_ch;
         // zephyr,console = &uart0;
@@ -69,7 +69,7 @@
     physical_layout0: physical_layout_0 {
         compatible = "zmk,physical-layout";
         display-name = "Default Layout";
-        kscan = <&kscan_adc>;
+        kscan = <&kscan>;
         transform = <&default_transform>;
         keys  //                     w   h    x    y     rot    rx    ry
             = <&key_physical_attrs 100 100    0    0       0     0     0>
@@ -90,6 +90,18 @@
             RC(2,0)
             RC(3,0)
         >;
+    };
+
+    kscan: kscan0 {
+        compatible = "zmk,kscan-composite";
+        wakeup-source;
+        rows = <4>;
+        columns = <1>;
+        adc-direct {
+            kscan = <&kscan_adc>;
+            row-offset = <0>;
+            col-offset = <0>;
+        };
     };
 
     pulse_set_forwarder: pulse-set-forwarder {
