@@ -1,12 +1,5 @@
 #include "tmr.dtsi"
 
-&kscan_gpio {
-    col-gpios
-        = <&gpio0 17 GPIO_ACTIVE_HIGH>
-        , <&gpio0 20 GPIO_ACTIVE_HIGH>
-        ;
-};
-
 // PS5 joystick has linear hall response — override Gateron polynomial with identity (y = x)
 &kscan_adc {
     polyfit = <0x3f800000 0x00000000>; /* [1.0, 0.0] → y = x */

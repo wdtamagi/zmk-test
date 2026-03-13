@@ -3,8 +3,6 @@
 
 #include <behaviors.dtsi>
 #include <dt-bindings/zmk/keys.h>
-#include <behaviors/gamepad_button.dtsi>
-#include <dt-bindings/he/pulse_set.h>
 
 / {
     // Define a default keymap here.
@@ -14,11 +12,10 @@
 
         default_layer {
             bindings = <
-                &kp A &kp B
-                &kp C
-                &kp D
-                &kp E
-                &kp F
+                &none
+                &none
+                &none
+                &none
             >;
         };
     };

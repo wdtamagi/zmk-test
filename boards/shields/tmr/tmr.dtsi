@@ -1,5 +1,4 @@
 #include <dt-bindings/zmk/matrix_transform.h>
-#include <dt-bindings/he/mouse_forwarder.h>
 #include <dt-bindings/he/gamepad_forwarder.h>
 #include <input/he_processors.dtsi>
 #include <physical_layouts.dtsi>
@@ -20,14 +19,6 @@
     channel@1 {
         reg = <1>;
         zephyr,input-positive = <NRF_SAADC_AIN5>;
-        zephyr,gain = "ADC_GAIN_1_6";
-        zephyr,reference = "ADC_REF_INTERNAL";
-        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
-        zephyr,resolution = <12>;
-    };
-    channel@2 {
-        reg = <2>;
-        zephyr,input-positive = <NRF_SAADC_AIN0>;
         zephyr,gain = "ADC_GAIN_1_6";
         zephyr,reference = "ADC_REF_INTERNAL";
         zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
@@ -59,7 +50,7 @@
 / {
     chosen {
         // zephyr,display = &oled;
-        zmk,kscan = &kscan;
+        zmk,kscan = &kscan_adc;
         zmk,physical-layout = &physical_layout0;
         // zmk,battery = &battery_ch;
         // zephyr,console = &uart0;
@@ -75,61 +66,30 @@
     //     io-channels = <&adc 6>;
     // };
     
-    physical_layout0: physical_layout_0 { // First physical layout, use different naming for other layouts
+    physical_layout0: physical_layout_0 {
         compatible = "zmk,physical-layout";
         display-name = "Default Layout";
-        kscan = <&kscan>; // Label of the kscan node, optional if all layouts use the same
-        transform = <&default_transform>; // Label of the matrix transform for this layout
+        kscan = <&kscan_adc>;
+        transform = <&default_transform>;
         keys  //                     w   h    x    y     rot    rx    ry
             = <&key_physical_attrs 100 100    0    0       0     0     0>
             , <&key_physical_attrs 100 100  100    0       0     0     0>
             , <&key_physical_attrs 100 100    0  100       0     0     0>
             , <&key_physical_attrs 100 100  100  100       0     0     0>
-            , <&key_physical_attrs 100 100    0  200       0     0     0>
-            , <&key_physical_attrs 100 100  100  200       0     0     0>
             ;
     };
 
 
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
-        columns = <2>;
-        rows = <5>;
+        columns = <1>;
+        rows = <4>;
         map = <
-    RC(0,0) RC(0,1)
-    RC(1,0)
-    RC(2,0)
-    RC(3,0)
-    RC(4,0)
+            RC(0,0)
+            RC(1,0)
+            RC(2,0)
+            RC(3,0)
         >;
-    };
-
-    kscan_gpio: kscan-gpio {
-        compatible = "zmk,kscan-gpio-matrix";
-        wakeup-source;
-
-        diode-direction = "col2row";
-        row-gpios
-            = <&gpio0 6 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>
-            ;
-
-    };
-
-    kscan: kscan0 {
-        compatible = "zmk,kscan-composite";
-        wakeup-source;
-        rows = <5>;
-        columns = <2>;
-        gpio-matrix {
-            kscan = <&kscan_gpio>;
-            row-offset = <0>;
-            col-offset = <0>;
-        };
-        adc-direct {
-            kscan = <&kscan_adc>;
-            row-offset = <1>;
-            col-offset = <0>;
-        };
     };
 
     pulse_set_forwarder: pulse-set-forwarder {
@@ -170,22 +130,6 @@
             switch-pressed-is-higher;
             switch-height = <1877>;
         };
-    };
-
-    socd_d: he-socd1{
-        compatible = "he,input-processor-socd";
-        #input-processor-cells = <1>;
-        sensitivity = <250>;
-        kscan-forwarder = <&kscan_forwarder>;
-        kscan-passthrough;
-        actuation-point = <3150>;
-        type= "priority_deeper";
-    };
-
-    ps: he_set_p{ //name needs to be <= 8 chars
-        compatible = "he,behavior-pulse-set";
-        #binding-cells = <1>;
-        pulse-set-forwarder = <&pulse_set_forwarder>;
     };
 
     he_transform: he_transform {// mapping of he sensors before going to kscan-composite but with he,input-processor-matrix-offset applied
