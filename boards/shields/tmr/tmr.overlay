@@ -43,7 +43,7 @@
 };
 
 &gp_fw {
-    working-area = <0 2100>;
+    working-area = <0 4095>;
     time-to-max-speed-ms = <0>;
     accumulation-time = <2>;
 };
