@@ -62,8 +62,8 @@ boards/shields/tmr/
 
 One physical joystick axis is split into two virtual HE sensor groups reading the **same ADC channel** (AIN0):
 
-1. **Top group** — covers the "left" direction: ADC values from 0 (extreme left) to 1130 (center)
-2. **Bot group** — covers the "right" direction: ADC values from 1130 (center) to ~2400 (extreme right)
+1. **Top group** — covers the "left" direction: ADC values from 0 (extreme left) to 1877 (center)
+2. **Bot group** — covers the "right" direction: ADC values from 1877 (center) to ~3750 (extreme right)
 
 Each group has its own calibration range in `tmr.overlay`. The `he_transform` maps them to positions 0 and 1. The `he_keymap` input processor then routes them through:
 - Position 0 (top/left) -> `&gp_fw GP_L_LEFT`
@@ -78,10 +78,34 @@ Estimated with 3.3V direct (no voltage divider), 12-bit ADC, 0-4095 range:
 - **Left extreme:** ~0 raw ADC
 - **Right extreme:** ~3750 raw ADC
 
+## Signal Processing Pipeline
+
+The event flow is: `kscan_adc` → `central_listener` → `raw_sp` (IIR filter) → `he_keymap` → `gp_fw` (gamepad axis output)
+
+### Height Computation (kscan driver)
+- Raw ADC is mapped via calibration range: `height_float = (ADC - cal_min) / (cal_max - cal_min)`
+- Inverted if `switch-pressed-is-higher` is set
+- Transformed by `polyfit` coefficients (default is for Gateron switches, NOT PS5 joystick — the polynomial is monotonic in [0,1] but non-linear)
+- Final height = `round(polyfit_result * switch_height)`, clamped to `[0, switch_height]`
+- Both groups read the same ADC channel — when one group's ADC value is outside its calibration range, the height gets clamped to 0 or switch_height
+
+### Working-area serves DIFFERENT purposes in raw_sp vs gp_fw
+- **`raw_sp` working-area**: Defines the IIR filter **passband**. Values outside this range cause `ZMK_INPUT_PROC_STOP` (event is dropped, never reaches gp_fw). Must be **wider** than the actual height range to accommodate IIR filter transients/ringing. Currently `<0 4095>` (full 12-bit ADC range).
+- **`gp_fw` working-area**: Defines the **rescaling range** for mapping heights to HID axis values via `scaled = 1.0 - (height - bottom) / (top - bottom)`. Must match the **actual height range** (`<0 switch_height>`) for full axis deflection. Currently `<0 1877>`.
+- If `gp_fw` working-area is too wide (e.g., `<0 4095>`), the axis only reaches `switch_height / working_area_max` ≈ 46% deflection
+- The `CLAMP(0, 1)` in `gp_rescale_working_area` gracefully handles heights slightly outside the range from filter transients
+
+### HID Report
+- Gamepad joystick axes are **int8_t** with HID logical range **[-127, 127]**
+- The `gp_fw` scale defaults are **127.0** for joysticks, **255.0** for triggers (set in `gamepad_forwarder.dtsi`, NOT the yaml defaults of 5.0)
+- `zmk_hid_gamepad_joy_left_set(int16_t x, int16_t y)` truncates to `int8_t` when storing in the report body
+
 ## Key Pitfalls
 
 - The `raw_sp` filter-coefficients are critical and painful to debug — the comment in tmr.dtsi is a genuine warning
 - `enable-gpios` must always be defined on HE groups even without `pulse-read` (build fails with `GPIO_DT_SPEC_GET_OR` at global scope otherwise)
 - The nice!nano P0.13 controls the 3.3V VCC regulator — ensure it stays high for reliable sensor power
-- ADC working-area values in `raw_sp` and `gp_fw` must be consistent and wide enough to cover actual sensor range, or height values wrap causing axis to snap to zero at extremes
+- **Do NOT set `raw_sp` and `gp_fw` working-area to the same value** — they serve different purposes (see Signal Processing Pipeline above)
+- The `raw_sp` IIR filter has complex conjugate poles (damping factor ~0.8) — it WILL ring on step changes, so its working-area must be wider than the actual height range
+- **The default `polyfit` is for Gateron switches and MUST be overridden for PS5 joystick.** The 5th-degree Gateron polynomial explodes when height_float exceeds [0,1] (which always happens since both groups read the same ADC). At certain ADC ranges, `polyfit_result * switch_height` overflows int16_t, wraps negative, gets clamped to 0, and collapses the gamepad axis to center. The PS5 joystick has a linear hall response — use identity polyfit `<0x3f800000 0x00000000>` (y = x)
 - The kscan composite row/column offsets must align with the default_transform matrix mapping
