@@ -7,6 +7,11 @@
         ;
 };
 
+// PS5 joystick has linear hall response — override Gateron polynomial with identity (y = x)
+&kscan_adc {
+    polyfit = <0x3f800000 0x00000000>; /* [1.0, 0.0] → y = x */
+};
+
 &kscan_adc_top {
     first {
         io-channels = <&adc 0>;
