@@ -11,7 +11,7 @@
                pos 5-6: stick1 left/right */
             bindings = <
                 &none
-                &kp UP &kp DOWN &kp LEFT &kp RIGHT
+                &kp A &kp B &kp C &kp D
                 &kp X &mo 1
             >;
         };
