@@ -6,11 +6,24 @@
         compatible = "zmk,keymap";
 
         default_layer {
-            bindings = <&none>;
+            /* pos 0: kscan dummy
+               pos 1-4: stick0 up/down/left/right
+               pos 5-6: stick1 left/right */
+            bindings = <
+                &none
+                &kp UP &kp DOWN &kp LEFT &kp RIGHT
+                &kp X &mo 1
+            >;
         };
 
         mouse_layer {
-            bindings = <&none>;
+            /* Stick0 in mouse mode — no keymap bindings needed.
+               Stick1 keeps same bindings (X key + mo 1). */
+            bindings = <
+                &none
+                &none &none &none &none
+                &kp X &mo 1
+            >;
         };
     };
 };

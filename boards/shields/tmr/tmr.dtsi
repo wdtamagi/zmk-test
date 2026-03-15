@@ -45,16 +45,22 @@
         display-name = "Default Layout";
         kscan = <&kscan>;
         transform = <&default_transform>;
-        keys
-            = <&key_physical_attrs 100 100 0 0 0 0 0>
+        keys  /*                        w    h    x    y   rot  rx  ry */
+            = <&key_physical_attrs    50  50    0    0    0   0   0>  /* 0: kscan dummy */
+            , <&key_physical_attrs    50  50  125   25    0   0   0>  /* 1: stick0 up */
+            , <&key_physical_attrs    50  50  125  125    0   0   0>  /* 2: stick0 down */
+            , <&key_physical_attrs    50  50   75   75    0   0   0>  /* 3: stick0 left */
+            , <&key_physical_attrs    50  50  175   75    0   0   0>  /* 4: stick0 right */
+            , <&key_physical_attrs    50  50  275   50    0   0   0>  /* 5: stick1 left (X) */
+            , <&key_physical_attrs    50  50  275  100    0   0   0>  /* 6: stick1 right (mo 1) */
             ;
     };
 
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
-        columns = <1>;
+        columns = <7>;
         rows = <1>;
-        map = <RC(0,0)>;
+        map = <RC(0,0) RC(0,1) RC(0,2) RC(0,3) RC(0,4) RC(0,5) RC(0,6)>;
     };
 
     /* Minimal kscan — ZMK requires one even when all input comes from analog sticks.
@@ -95,7 +101,9 @@
         wait-period-active = <8>;
     };
 
-    /* Listener for stick 0 — layer-aware mode switching */
+    /* Listener for stick 0 — layer-aware mode switching.
+       Directions reference keymap positions 1-4 (defined in transform above).
+       Bindings at those positions are in the keymap and editable via Studio. */
     analog_stick_listener0: analog_stick_listener_0 {
         compatible = "zmk,analog-stick-listener";
         device = <&analog_stick0>;
@@ -103,10 +111,10 @@
         layer0 {
             layers = <0>;
             mode = <ANALOG_STICK_MODE_SWITCH>;
-            up-keycode = <UP>;
-            down-keycode = <DOWN>;
-            left-keycode = <LEFT>;
-            right-keycode = <RIGHT>;
+            up-position = <1>;
+            down-position = <2>;
+            left-position = <3>;
+            right-position = <4>;
             switch-activation-point = <40>;
             switch-hysteresis = <4>;
         };
@@ -118,13 +126,9 @@
         };
     };
 
-    /* Listener for stick 1 — switch mode on all layers.
-       NOTE: The analog stick switch mode emits raw HID keycodes via
-       zmk_hid_keyboard_press(), NOT ZMK behaviors. This means &mo, &lt,
-       and other ZMK behaviors cannot be used here. Both directions are
-       bound to regular keys. To add momentary layer switching from the
-       trigger, a behavior-aware mode would need to be added to the driver,
-       or a physical button used for layer activation. */
+    /* Listener for stick 1 — single-axis trigger.
+       Directions reference keymap positions 5-6.
+       Right direction is &mo 1 in the keymap — enables mouse layer! */
     analog_stick_listener1: analog_stick_listener_1 {
         compatible = "zmk,analog-stick-listener";
         device = <&analog_stick1>;
@@ -132,8 +136,8 @@
         layer0 {
             layers = <0 1>;
             mode = <ANALOG_STICK_MODE_SWITCH>;
-            left-keycode = <X>;
-            right-keycode = <Z>;
+            left-position = <5>;
+            right-position = <6>;
             switch-activation-point = <40>;
             switch-hysteresis = <4>;
         };
