@@ -1,6 +1,6 @@
 #include <dt-bindings/zmk/matrix_transform.h>
-#include <dt-bindings/he/gamepad_forwarder.h>
-#include <input/he_processors.dtsi>
+#include <dt-bindings/analog-stick/modes.h>
+#include <dt-bindings/zmk/keys.h>
 #include <physical_layouts.dtsi>
 
 &adc {
@@ -24,155 +24,118 @@
         zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
         zephyr,resolution = <12>;
     };
-};
-
-&raw_sp {
-    matrix-size = <4 1>;
-    working-area = <0 4095>;
-    // I lost so many hours debugging this with the wrong values, please check them carefully in the future
-    filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
-};
-
-&he_trans {
-};
-
-&he_pass {
-    // 35% actuation: 1877 * 0.65 = 1220 (height below this = pressed)
-    // sensitivity adds hysteresis: press at pos-125, release at pos+125
-    kscan-passthrough-position = <1220>;
-    keymap-size = <4>;
-};
-
-&rt_pass{
-    keymap-size = <4>;
+    channel@7 {
+        reg = <7>;
+        zephyr,input-positive = <NRF_SAADC_AIN7>;
+        zephyr,gain = "ADC_GAIN_1_6";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME(ADC_ACQ_TIME_MICROSECONDS, 10)>;
+        zephyr,resolution = <12>;
+    };
 };
 
 / {
     chosen {
-        // zephyr,display = &oled;
         zmk,kscan = &kscan;
         zmk,physical-layout = &physical_layout0;
-        // zmk,battery = &battery_ch;
-        // zephyr,console = &uart0;
-        // zephyr,console = &snippet_zmk_usb_logging_uart;
-        // zephyr,shell-uart = &snippet_zmk_usb_logging_uart;
     };
 
-    // On the nano 33 ble, the battery is connected to an on board regulator that goes to vdd, so the only way to measure the battery is with a voltage divider
-    // but i don't have any free adc pins
-    // 
-    // battery_ch: battery_channel {
-    //     compatible = "zmk,battery-nrf-vddh-channel";
-    //     io-channels = <&adc 6>;
-    // };
-    
     physical_layout0: physical_layout_0 {
         compatible = "zmk,physical-layout";
         display-name = "Default Layout";
         kscan = <&kscan>;
         transform = <&default_transform>;
-        keys  //                     w   h    x    y     rot    rx    ry
-            = <&key_physical_attrs 100 100    0    0       0     0     0>
-            , <&key_physical_attrs 100 100  100    0       0     0     0>
-            , <&key_physical_attrs 100 100    0  100       0     0     0>
-            , <&key_physical_attrs 100 100  100  100       0     0     0>
+        keys
+            = <&key_physical_attrs 100 100 0 0 0 0 0>
             ;
     };
-
 
     default_transform: keymap_transform_0 {
         compatible = "zmk,matrix-transform";
         columns = <1>;
-        rows = <4>;
-        map = <
-            RC(0,0)
-            RC(1,0)
-            RC(2,0)
-            RC(3,0)
-        >;
+        rows = <1>;
+        map = <RC(0,0)>;
     };
 
+    /* Minimal kscan — ZMK requires one even when all input comes from analog sticks.
+       Using kscan-mock with no events so it never fires. */
     kscan: kscan0 {
-        compatible = "zmk,kscan-composite";
-        wakeup-source;
-        rows = <4>;
+        compatible = "zmk,kscan-mock";
         columns = <1>;
-        adc-direct {
-            kscan = <&kscan_adc>;
-            row-offset = <0>;
-            col-offset = <0>;
-        };
+        rows = <1>;
+        events = <0>;
     };
 
-    pulse_set_forwarder: pulse-set-forwarder {
-        compatible = "he,pulse-set-forwarder";
+    /* Stick 0: PS5 dual-axis hall-effect joystick (X=AIN0, Y=AIN5) */
+    analog_stick0: analog_stick_0 {
+        compatible = "zmk,analog-stick";
+        io-channels = <&adc 0>, <&adc 1>;
+        x-min = <0>;
+        x-center = <1877>;
+        x-max = <3750>;
+        y-min = <0>;
+        y-center = <1877>;
+        y-max = <3750>;
+        deadzone-percent = <5>;
+        wait-period-idle = <100>;
+        wait-period-active = <8>;
+        /* Biquad IIR filter coefficients (b0, b1, b2, a0, a1, a2) — carried over from HE config */
+        filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
     };
 
-    kscan_adc: kscan-adc {
-        compatible = "he,kscan-direct-pulsed";
-        resolution = <12>;
-        // pulse-read;
-        // calibrate;
-        read-turn-on-time= <50>;
-        wait-period-idle= <5>;
-        wait-period-press= <1>;
-        kscan-forwarder = <&kscan_forwarder>;
-        pulse-set-forwarder= <&pulse_set_forwarder>;
-        // X axis (AIN0)
-        kscan_adc_top: top {
-            enable-gpios= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-            // "left" direction: lower ADC = more pressed
-            switch-height = <1877>;
-        };
-        kscan_adc_bot: bot {
-            enable-gpios= <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-            // "right" direction: higher ADC = more pressed
-            switch-pressed-is-higher;
-            switch-height = <1877>;
-        };
-        // Y axis (AIN5 / P0.29)
-        kscan_adc_up: up {
-            enable-gpios= <&gpio1 0 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-            // "up" direction: lower ADC = more pressed
-            switch-height = <1877>;
-        };
-        kscan_adc_down: down {
-            enable-gpios= <&gpio0 11 (GPIO_ACTIVE_HIGH | GPIO_PULL_DOWN)>;
-            // "down" direction: higher ADC = more pressed
-            switch-pressed-is-higher;
-            switch-height = <1877>;
-        };
+    /* Stick 1: Single-axis trigger on AIN7 (P0.31) */
+    analog_stick1: analog_stick_1 {
+        compatible = "zmk,analog-stick";
+        io-channels = <&adc 7>;
+        x-min = <0>;
+        x-center = <1877>;
+        x-max = <3750>;
+        deadzone-percent = <5>;
+        wait-period-idle = <100>;
+        wait-period-active = <8>;
     };
 
-    he_transform: he_transform {// mapping of he sensors before going to kscan-composite but with he,input-processor-matrix-offset applied
-        compatible = "zmk,matrix-transform";
-        // status= "disabled";
-        columns = <1>;
-        rows = <4>;
-        // group -> position: top/left=0, bot/right=1, up=2, down=3
-        map = <
-            RC(0,0)
-            RC(1,0)
-            RC(2,0)
-            RC(3,0)
-        >;
-    };
+    /* Listener for stick 0 — layer-aware mode switching */
+    analog_stick_listener0: analog_stick_listener_0 {
+        compatible = "zmk,analog-stick-listener";
+        device = <&analog_stick0>;
 
-    he_keymap: he-keymap {
-        compatible = "he,input-processor-keymap";
-        status= "disabled";
-        #input-processor-cells = <1>;
-        transform = <&he_transform>;
-    };
-
-    central_listener: central_listener {
-        compatible = "he,input-listener";
-        status = "disabled";
-        device = <&kscan_adc>;
-        input-processors = <&raw_sp>;
         layer0 {
             layers = <0>;
-            input-processors = <&he_keymap 0>;
+            mode = <ANALOG_STICK_MODE_SWITCH>;
+            up-keycode = <UP>;
+            down-keycode = <DOWN>;
+            left-keycode = <LEFT>;
+            right-keycode = <RIGHT>;
+            switch-activation-point = <40>;
+            switch-hysteresis = <4>;
+        };
+        layer1 {
+            layers = <1>;
+            mode = <ANALOG_STICK_MODE_MOUSE>;
+            mouse-min-speed = <1>;
+            mouse-max-speed = <15>;
+        };
+    };
+
+    /* Listener for stick 1 — switch mode on all layers.
+       NOTE: The analog stick switch mode emits raw HID keycodes via
+       zmk_hid_keyboard_press(), NOT ZMK behaviors. This means &mo, &lt,
+       and other ZMK behaviors cannot be used here. Both directions are
+       bound to regular keys. To add momentary layer switching from the
+       trigger, a behavior-aware mode would need to be added to the driver,
+       or a physical button used for layer activation. */
+    analog_stick_listener1: analog_stick_listener_1 {
+        compatible = "zmk,analog-stick-listener";
+        device = <&analog_stick1>;
+
+        layer0 {
+            layers = <0 1>;
+            mode = <ANALOG_STICK_MODE_SWITCH>;
+            left-keycode = <X>;
+            right-keycode = <Z>;
+            switch-activation-point = <40>;
+            switch-hysteresis = <4>;
         };
     };
 };

@@ -1,10 +1,10 @@
-# ZMK Test - Hall Effect Keyboard Configuration
+# ZMK Test - Analog Stick Keyboard Configuration
 
 ## What This Repository Is
 
 This is a ZMK user config repository for the **tmr** shield, a test/development keyboard running on a **nice!nano** (nRF52840). It builds firmware via GitHub Actions using `zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3`.
 
-The shield currently uses a **PS5 joystick hall-effect sensor** (not traditional Gateron HE switches) to produce **analog gamepad axis output** via the gamepad forwarder input processor.
+The shield uses **PS5 joystick hall-effect sensors** read via the `zmk-driver-analog-stick` module, which provides multi-mode analog stick input (switch keys, mouse pointer, scroll) switchable per keymap layer.
 
 ## Repository Structure
 
@@ -13,10 +13,10 @@ config/west.yml          # West manifest — declares ZMK and module dependencie
 build.yaml               # GitHub Actions build matrix (nice_nano + tmr shield)
 zephyr/module.yml         # Registers this repo as a Zephyr module (board_root)
 boards/shields/tmr/
-  tmr.dtsi               # Base shield devicetree (ADC, kscan, transforms, HE driver, signal processing)
-  tmr.overlay            # Board-specific overrides (pin assignments, calibration values, gp_fw tuning)
-  tmr.keymap             # Keymap and HE keymap input processor bindings
-  tmr.conf               # Kconfig (stack sizes, debug logging, gamepad HID settings)
+  tmr.dtsi               # Base shield devicetree (ADC, analog sticks, listeners)
+  tmr.overlay            # Board-specific overrides (includes tmr.dtsi)
+  tmr.keymap             # Keymap (minimal — input comes from analog stick listeners)
+  tmr.conf               # Kconfig (analog stick, stack sizes, debug logging)
   Kconfig.shield         # Shield detection
   Kconfig.defconfig       # Default Kconfig values (keyboard name)
   tmr.zmk.yml            # Hardware metadata
@@ -25,87 +25,79 @@ boards/shields/tmr/
 ## External Dependencies
 
 ### ZMK Firmware
-- **Remote:** `https://github.com/zmkfirmware/zmk`
+- **Remote:** `https://github.com/zmkfirmware`
 - **Revision:** `v0.3`
-- Provides the core firmware, kscan drivers, keymap system, matrix transforms, BLE, USB HID, etc.
-- The build workflow is `zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3`
+- Provides the core firmware, keymap system, BLE, USB HID, etc.
 
-### zmk-feature-hall-effect (cr3eperall)
-- **URL:** `https://github.com/cr3eperall/zmk-feature-hall-effect`
+### zmk-driver-analog-stick (wdtamagi)
+- **URL:** `https://github.com/wdtamagi/zmk-driver-analog-stick`
 - **Revision:** `main`
-- **Local path (cached):** `.zmk/modules/zmk-feature-hall-effect/`
-- Provides hall-effect specific drivers and input processors:
-  - `he,kscan-direct-pulsed` — ADC-based kscan driver with groups (top/bot), calibration, switch-height thresholds
-  - `he,input-processor-keymap` — maps HE sensor positions to input processor chains via a transform
-  - `he,input-processor-socd` — simultaneous opposing cardinal directions resolution (requires 2 physical sensors)
-  - `he,behavior-pulse-set` — pulse set behavior for HE sensors
-  - `he,pulse-set-forwarder` — forwards pulse set data
-  - `he,input-listener` — central listener that routes HE sensor data through input processor chains
-  - Signal processing: `raw_sp` (raw signal processor with IIR filter), `he_trans` (HE transform), `he_pass`/`rt_pass` (passthrough processors)
-  - Gamepad forwarder: `gp_fw` — maps HE sensor height values to HID gamepad axes using `rescale(RIGHT) - rescale(LEFT)` differential formula
-- **Key headers:**
-  - `<dt-bindings/he/mouse_forwarder.h>` — mouse axis constants
-  - `<dt-bindings/he/gamepad_forwarder.h>` — gamepad axis constants (GP_L_LEFT, GP_L_RIGHT, etc.)
-  - `<dt-bindings/he/pulse_set.h>` — pulse set constants
-  - `<input/he_processors.dtsi>` — shared input processor node definitions (raw_sp, gp_fw, he_trans, he_pass, rt_pass)
+- **Local path (cached):** `modules/zmk-driver-analog-stick/`
+- Provides:
+  - `zmk,analog-stick` — ADC-based analog stick driver with Q16.16 fixed-point processing, IIR biquad filter, per-axis linear deadzone, ratiometric deadzone-percent
+  - `zmk,analog-stick-listener` — Layer-aware input listener routing stick input to switch (key), mouse pointer, or scroll mode
+  - `zmk,analog-stick-split` — Split keyboard transport (per-event BLE forwarding)
+  - Scan coordinator — Batched multi-stick scanning with GPIO grouping and CI-aware polling
+  - HID accumulator — Cross-stick mouse/scroll report coordination
 
 ## Hardware Setup
 
 - **MCU board:** nice!nano v2 (nRF52840, pro_micro interconnect)
-- **Sensor:** PS5 joystick hall-effect sensor (single axis, bidirectional)
-- **Power:** Sensor powered from VCC (3.3V) — direct connection, no voltage divider needed (3.3V is within nRF52840 SAADC 3.6V limit)
-- **ADC config:** AIN0, ADC_GAIN_1_6, ADC_REF_INTERNAL (0.6V reference, max measurable = 3.6V)
-- **GPIO keys:** 2 columns on P0.17 and P0.20, 1 row on P0.6
-- **HE enable pins:** top group on P1.0, bot group on P0.11 (required even without pulse-read)
+- **Stick 0:** PS5 joystick hall-effect sensor (dual-axis, bidirectional)
+  - X axis on AIN0, Y axis on AIN5
+- **Stick 1:** Single-axis trigger sensor on AIN7 (P0.31)
+- **Power:** Sensors powered from VCC (3.3V) — direct connection, no voltage divider needed (3.3V within nRF52840 SAADC 3.6V limit)
+- **ADC config:** Gain 1/6, internal reference (0.6V × 6 = 3.6V effective range), 12-bit resolution, 10µs acquisition time
 
-## How the Joystick Mapping Works
+## Analog Stick Configuration
 
-One physical joystick axis is split into two virtual HE sensor groups reading the **same ADC channel** (AIN0):
+### Stick 0 (dual-axis PS5 joystick)
+- **Channels:** AIN0 (X), AIN5 (Y)
+- **Calibration:** min=0, center=1877, max=3750
+- **Deadzone:** 5% of half-range (~92 counts)
+- **Filter:** 2nd-order IIR biquad (coefficients carried over from previous HE config)
+- **Layer 0:** Switch mode — UP/DOWN/LEFT/RIGHT arrow keys
+- **Layer 1:** Mouse pointer mode — min speed 1, max speed 15
 
-1. **Top group** — covers the "left" direction: ADC values from 0 (extreme left) to 1877 (center)
-2. **Bot group** — covers the "right" direction: ADC values from 1877 (center) to ~3750 (extreme right)
+### Stick 1 (single-axis trigger)
+- **Channel:** AIN7 (P0.31)
+- **Calibration:** min=0, center=1877, max=3750
+- **Deadzone:** 5% of half-range
+- **All layers:** Switch mode — left direction = X key, right direction = Z key
 
-Each group has its own calibration range in `tmr.overlay`. The `he_transform` maps them to positions 0 and 1. The `he_keymap` input processor then routes them through:
-- Position 0 (top/left) -> `&gp_fw GP_L_LEFT`
-- Position 1 (bot/right) -> `&gp_fw GP_L_RIGHT`
+## Layer Architecture
 
-The gamepad forwarder computes the axis output as `rescale(RIGHT) - rescale(LEFT)`, producing a single bidirectional HID gamepad left-stick X-axis.
+| Layer | Stick 0 | Stick 1 |
+|-------|---------|---------|
+| 0 (default) | Arrow keys (switch mode) | X / Z keys (switch mode) |
+| 1 (mouse) | Mouse pointer movement | X / Z keys (switch mode) |
+
+## Known Limitations
+
+- **No layer switching from sticks:** The analog stick switch mode emits raw HID keycodes via `zmk_hid_keyboard_press()`, not ZMK behaviors. This means `&mo`, `&lt`, and other ZMK behaviors cannot be triggered by stick deflection. Layer switching requires either a physical button or a future behavior-aware mode in the driver.
+- **Stick 1 placeholder keys:** Both directions of stick 1 are bound to regular keys (X/Z). The original intent was one direction for `&mo 1` (layer toggle) — blocked by the HID keycode limitation above.
+- **BLE bandwidth with 5+ sticks:** The per-event split transport sends one BLE notification per axis event. Not a concern with 2 sticks.
 
 ## Calibration Reference Values
 
 Estimated with 3.3V direct (no voltage divider), 12-bit ADC, 0-4095 range:
 - **Center (neutral):** ~1877 raw ADC
-- **Left extreme:** ~0 raw ADC
-- **Right extreme:** ~3750 raw ADC
+- **Left/Up extreme:** ~0 raw ADC
+- **Right/Down extreme:** ~3750 raw ADC
+
+To recalibrate: enable `CONFIG_ZMK_ANALOG_STICK_LOG_LEVEL_DBG=y` in tmr.conf, read raw ADC values from logs, and update x-min/x-center/x-max (and y equivalents) in tmr.dtsi.
 
 ## Signal Processing Pipeline
 
-The event flow is: `kscan_adc` → `central_listener` → `raw_sp` (IIR filter) → `he_keymap` → `gp_fw` (gamepad axis output)
+```
+ADC read → [IIR biquad filter] → rescale_axis (deadzone + normalize) → output [-127, +127]
+                                                                              ↓
+                                                              input_report(INPUT_EV_ABS)
+                                                                              ↓
+                                                              analog_stick_listener
+                                                                              ↓
+                                                          switch mode: zmk_hid_keyboard_press()
+                                                          mouse mode: zmk_analog_stick_hid_move_add()
+```
 
-### Height Computation (kscan driver)
-- Raw ADC is mapped via calibration range: `height_float = (ADC - cal_min) / (cal_max - cal_min)`
-- Inverted if `switch-pressed-is-higher` is set
-- Transformed by `polyfit` coefficients (default is for Gateron switches, NOT PS5 joystick — the polynomial is monotonic in [0,1] but non-linear)
-- Final height = `round(polyfit_result * switch_height)`, clamped to `[0, switch_height]`
-- Both groups read the same ADC channel — when one group's ADC value is outside its calibration range, the height gets clamped to 0 or switch_height
-
-### Working-area serves DIFFERENT purposes in raw_sp vs gp_fw
-- **`raw_sp` working-area**: Defines the IIR filter **passband**. Values outside this range cause `ZMK_INPUT_PROC_STOP` (event is dropped, never reaches gp_fw). Must be **wider** than the actual height range to accommodate IIR filter transients/ringing. Currently `<0 4095>` (full 12-bit ADC range).
-- **`gp_fw` working-area**: Defines the **rescaling range** for mapping heights to HID axis values via `scaled = 1.0 - (height - bottom) / (top - bottom)`. Must match the **actual height range** (`<0 switch_height>`) for full axis deflection. Currently `<0 1877>`.
-- If `gp_fw` working-area is too wide (e.g., `<0 4095>`), the axis only reaches `switch_height / working_area_max` ≈ 46% deflection
-- The `CLAMP(0, 1)` in `gp_rescale_working_area` gracefully handles heights slightly outside the range from filter transients
-
-### HID Report
-- Gamepad joystick axes are **int8_t** with HID logical range **[-127, 127]**
-- The `gp_fw` scale defaults are **127.0** for joysticks, **255.0** for triggers (set in `gamepad_forwarder.dtsi`, NOT the yaml defaults of 5.0)
-- `zmk_hid_gamepad_joy_left_set(int16_t x, int16_t y)` truncates to `int8_t` when storing in the report body
-
-## Key Pitfalls
-
-- The `raw_sp` filter-coefficients are critical and painful to debug — the comment in tmr.dtsi is a genuine warning
-- `enable-gpios` must always be defined on HE groups even without `pulse-read` (build fails with `GPIO_DT_SPEC_GET_OR` at global scope otherwise)
-- The nice!nano P0.13 controls the 3.3V VCC regulator — ensure it stays high for reliable sensor power
-- **Do NOT set `raw_sp` and `gp_fw` working-area to the same value** — they serve different purposes (see Signal Processing Pipeline above)
-- The `raw_sp` IIR filter has complex conjugate poles (damping factor ~0.8) — it WILL ring on step changes, so its working-area must be wider than the actual height range
-- **The default `polyfit` is for Gateron switches and MUST be overridden for PS5 joystick.** The 5th-degree Gateron polynomial explodes when height_float exceeds [0,1] (which always happens since both groups read the same ADC). At certain ADC ranges, `polyfit_result * switch_height` overflows int16_t, wraps negative, gets clamped to 0, and collapses the gamepad axis to center. The PS5 joystick has a linear hall response — use identity polyfit `<0x3f800000 0x00000000>` (y = x)
-- The kscan composite row/column offsets must align with the default_transform matrix mapping
+The scan coordinator reads both sticks in a single batched pass, then processes all sticks, then flushes one combined HID report.

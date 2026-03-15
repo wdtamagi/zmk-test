@@ -18,4 +18,4 @@ features:
 
 requires:
   - pro_micro
-  - zmk-feature-hall-effect
+  - zmk-driver-analog-stick
