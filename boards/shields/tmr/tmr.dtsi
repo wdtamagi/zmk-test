@@ -1,6 +1,5 @@
 #include <dt-bindings/zmk/matrix_transform.h>
 #include <dt-bindings/analog-stick/modes.h>
-#include <dt-bindings/zmk/keys.h>
 #include <physical_layouts.dtsi>
 
 &adc {
