@@ -126,7 +126,7 @@
             layers = <1>;
             mode = <ANALOG_STICK_MODE_MOUSE>;
             mouse-min-speed = <1>;
-            mouse-max-speed = <3>;
+            mouse-max-speed = <15>;
         };
     };
 
