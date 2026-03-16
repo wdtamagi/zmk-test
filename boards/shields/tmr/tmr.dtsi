@@ -83,7 +83,11 @@
         y-max = <3750>;
         deadzone-percent = <5>;
         wait-period-idle = <100>;
-        wait-period-active = <8>;
+        /* wait-period-active = <8>; */
+
+        /* debug wait */
+        wait-period-active = <500>;
+
         /* Biquad IIR filter coefficients (b0, b1, b2, a0, a1, a2) — carried over from HE config */
         filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
     };
@@ -97,8 +101,12 @@
         x-max = <3750>;
         deadzone-percent = <5>;
         wait-period-idle = <100>;
-        wait-period-active = <8>;
+        /* wait-period-active = <8>; */
+
+        /* debug wait */
+        wait-period-active = <500>;
         /* Biquad IIR filter coefficients (b0, b1, b2, a0, a1, a2) — carried over from HE config */
+
         filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
     };
 
