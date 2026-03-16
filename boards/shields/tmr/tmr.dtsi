@@ -81,12 +81,12 @@
         y-min = <0>;
         y-center = <1877>;
         y-max = <3750>;
-        deadzone-percent = <5>;
+        deadzone-percent = <10>;
         wait-period-idle = <100>;
-        /* wait-period-active = <8>; */
+        wait-period-active = <8>;
 
         /* debug wait */
-        wait-period-active = <500>;
+        /* wait-period-active = <500>; */
 
         /* Biquad IIR filter coefficients (b0, b1, b2, a0, a1, a2) — carried over from HE config */
         filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
@@ -99,12 +99,12 @@
         x-min = <0>;
         x-center = <1877>;
         x-max = <3750>;
-        deadzone-percent = <5>;
+        deadzone-percent = <10>;
         wait-period-idle = <100>;
-        /* wait-period-active = <8>; */
+        wait-period-active = <8>;
 
         /* debug wait */
-        wait-period-active = <500>;
+        /* wait-period-active = <500>; */
         /* Biquad IIR filter coefficients (b0, b1, b2, a0, a1, a2) — carried over from HE config */
 
         filter-coefficients = <0x3ca485df 0x3d2485df 0x3ca485df 0x3f800000 0xbfc7cf71 0x3f242f9d>;
