@@ -76,11 +76,11 @@
         compatible = "zmk,analog-stick";
         io-channels = <&adc 0>, <&adc 1>;
         x-min = <0>;
-        x-center = <1877>;
-        x-max = <3750>;
+        x-center = <2035>;
+        x-max = <4090>;
         y-min = <0>;
-        y-center = <1877>;
-        y-max = <3750>;
+        y-center = <1965>;
+        y-max = <4090>;
         deadzone-percent = <10>;
         wait-period-idle = <100>;
         wait-period-active = <8>;
@@ -97,8 +97,8 @@
         compatible = "zmk,analog-stick";
         io-channels = <&adc 7>;
         x-min = <0>;
-        x-center = <1877>;
-        x-max = <3750>;
+        x-center = <2012>;
+        x-max = <4090>;
         deadzone-percent = <10>;
         wait-period-idle = <100>;
         wait-period-active = <8>;
