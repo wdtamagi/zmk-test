@@ -81,7 +81,7 @@
         y-min = <0>;
         y-center = <1965>;
         y-max = <4090>;
-        deadzone-percent = <10>;
+        deadzone-percent = <7>;
         wait-period-idle = <100>;
         wait-period-active = <8>;
 
@@ -99,7 +99,7 @@
         x-min = <0>;
         x-center = <2012>;
         x-max = <4090>;
-        deadzone-percent = <10>;
+        deadzone-percent = <7>;
         wait-period-idle = <100>;
         wait-period-active = <8>;
 
@@ -124,8 +124,8 @@
             down-position = <2>;
             left-position = <3>;
             right-position = <4>;
-            switch-activation-point = <20>;
-            switch-hysteresis = <2>;
+            switch-activation-point = <15>;
+            switch-hysteresis = <4>;
         };
         layer1 {
             layers = <1>;
@@ -147,8 +147,8 @@
             mode = <ANALOG_STICK_MODE_SWITCH>;
             left-position = <5>;
             right-position = <6>;
-            switch-activation-point = <20>;
-            switch-hysteresis = <2>;
+            switch-activation-point = <15>;
+            switch-hysteresis = <4>;
         };
     };
 };
